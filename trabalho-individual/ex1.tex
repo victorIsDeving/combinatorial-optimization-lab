@@ -1,0 +1,80 @@
+\section{
+    Determine os cilindros com a caixa e o contêiner em que eles estão, que satisfaçam todas as seguintes condições.
+}
+
+\setlength{\parindent}{4em}
+\setlength{\parskip}{0.5em}
+\renewcommand{\baselinestretch}{1}
+
+
+O código para a resolução do exercício está em um script no \href{https://colab.research.google.com/drive/1FjYSW76mo_Uk_GQ3Bv3es1r8BV-4WGcB?usp=sharing}{Google Colab}. Acredito que acessando com o e-mail da USP qualquer um consegue visualizar, qualquer problema pode me avisar.
+
+A Figura \ref{fig:descritivo} mostra um descritivo de cada contêiner e do conteúdo de cada um. São 40 contêineres que guardam 59 caixas. As caixas contém 411 cilindros.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\textwidth]{descritivo.png}
+    \caption{Descritivo de cada contêiner e dos seus contéudos.}
+    \label{fig:descritivo}
+\end{figure}
+
+Os dados foram ajustados para gerar diferentes dicionários para serem usados na construção do modelo. As caixas foram nomeadas de LB\_1 até LB\_59 para que cada caixa tivesse uma identificação própria, assim como os cilindros, que foram nomeados de 1 até 411. Os dicionários servem para que tenhamos uma relação direta para ter a relação contêiner -> caixa -> cilindro. Os dicionários criados foram:
+\begin{list}{-}{spacing}
+    \item \textit{boxes\_in\_container}: relaciona as caixas que estão em cada contêiner. Chave é o contêiner, valor é uma lista com as caixas.
+    \item \textit{cylinders\_in\_container}: relaciona os cilindros que estão em cada contêiner. Chave é o contêiner e valor é uma lista com os cilindros.
+    \item \textit{container\_of\_box}: relaciona em que contêiner está cada caixa, é a inversa do \textit{boxes\_in\_container}. Chave é a caixa, valor é o contêiner.
+    \item \textit{cylinders\_in\_box}: relaciona os cilindros que estão em cada caixa. Chave é a caixa e valor é uma lista dos cilindros que estão na caixa.
+    \item \textit{container\_of\_cylinder}: relaciona o contêiner em que está cada cilindro. Chave é o cilindro e valor é o contêiner.
+    \item \textit{box\_of\_cylinder}: relaciona a caixa em que está cada cilindro. Chave é o cilindro, valor é a caixa.
+    \item \textit{cylinder\_data}: relaciona os atributos de cada cilindro. É um dicionário com dois dicionários: o primeiro faz a relação do cilindro com o seu peso e o segundo faz a relação do cilindro com o seu volume.
+\end{list}
+
+Com esses dicionários fica fácil e eficiente de fazer as correlações de pertencimento e de obter as informações relevantes de cada cilindro.
+
+As variáveis são binárias e definidas da seguinte forma:
+
+  $\ \ \ \ x_i\ binary\ (i\ range\ [1,40]) \rightarrow contêineres$
+
+  $\ \ \ \ y_j\ binary\ (j\ range\ [1,59]) \rightarrow caixas$
+  
+  $\ \ \ \ z_k\ binary\ (k\ range\ [1,411]) \rightarrow cilindros$
+
+O modelo foi criado pensando nas restrições de trás pra frente. Primeiro criando as condições \textit{e}, \textit{f} e \textit{g}. São as condições mais diretas de serem resolvidas.
+
+    $\ \ \ \ (Restrição\ e)\ \sum_{i=1}^{40} x_{i} = 35$
+
+    $\ \ \ \ (Restrição\ f)\ \sum_{k=1}^{411} z_{k}*cylinder\_volume_{k} = 5163.69$
+
+    $\ \ \ \ (Restrição\ g)\ \sum_{k=1}^{411} z_{k}*cylinder\_weight_{k} = 18844$
+
+Depois as condições foram implementadas na ordem \textit{c}, \textit{b} e \textit{a}. Aplicando as restrições primeiro aos cilindros, depois às caixas e por fim nos contêineres.
+
+  $\ \ \ \ (Restrição\ c)\ z_k <= x_i \rightarrow $ para cada $x_i$ que pertença a $z_k$
+
+  $\ \ \ \ (Restrição\ c)\ y_j <= x_i \rightarrow $ para cada $x_i$ que pertença a $y_j$
+
+  $\ \ \ \ (Restrição\ b)\ y_j <= \sum_{k}z \rightarrow $ para cada $z_k$ que pertença a $y_j$
+
+  $\ \ \ \ (Restrição\ a)\ x_i <= \sum_{j}y \rightarrow $ para cada $y_j$ que pertença a $x_i$
+
+  $\ \ \ \ (Restrição\ a)\ x_i <= \sum_{k}z \rightarrow $ para cada $z_k$ que pertença a $x_i$
+
+A implementação dessas condições tem muitas intersecções, uma parte da \textit{c} resolve uma parte da \textit{b}, por exemplo. Além de que a implementação dessas 3 cumpre os requisitos para implementação da restrição \textit{d}.
+
+O arquivo \textit{solution.csv} enviado mostra a tabela com os resultados obtidos, ordenado pela coluna dos cilindros. As Figuras \ref{fig:solution:pt1} e \ref{fig:solution:pt2} mostra a tabela obtida.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[page=1,width=1\textwidth]{solution.pdf}
+    \caption{Parte 1 da tabela resultado do modelo, como está em \textit{solution.csv}.}
+    \label{fig:solution:pt1}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[page=2,width=1\textwidth]{solution.pdf}
+    \caption{Parte 2 da tabela resultado do modelo, como está em \textit{solution.csv}.}
+    \label{fig:solution:pt2}
+\end{figure}
+
+O resultado apresenta 64 linhas, que são os 64 cilindros que foram selecionados. Os contêineres são 35 valores únicos, as caixas são 42 únicas. A soma dos pesos dos cilindros dão 18844 g e o volume total é de 5163.69.
